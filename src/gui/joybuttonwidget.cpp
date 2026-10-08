@@ -29,6 +29,13 @@ JoyButtonWidget::JoyButtonWidget(JoyButton *button, bool displayNames, QWidget *
     : FlashButtonWidget(displayNames, parent)
 {
     m_button = button;
+    if (m_button != nullptr)
+    {
+        connect(m_button, &JoyButton::propertyUpdated, this, &JoyButtonWidget::refreshLabel);
+        connect(m_button, &JoyButton::activeZoneChanged, this, &JoyButtonWidget::refreshLabel);
+        connect(m_button, &JoyButton::functionLabelChanged, this, &JoyButtonWidget::refreshLabel);
+        connect(m_button, &JoyButton::displayModeChanged, this, &JoyButtonWidget::refreshLabel);
+    }
 
     refreshLabel();
     enableFlashes();
@@ -38,14 +45,15 @@ JoyButtonWidget::JoyButtonWidget(JoyButton *button, bool displayNames, QWidget *
     this->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(this, &JoyButtonWidget::customContextMenuRequested, this, &JoyButtonWidget::showContextMenu);
-    connect(button, &JoyButton::propertyUpdated, this, &JoyButtonWidget::refreshLabel);
-    connect(button, &JoyButton::activeZoneChanged, this, &JoyButtonWidget::refreshLabel);
 }
 
 JoyButton *JoyButtonWidget::getJoyButton() const { return m_button; }
 
 void JoyButtonWidget::disableFlashes()
 {
+    if (m_button == nullptr)
+        return;
+
     disconnect(m_button, &JoyButton::clicked, this, &JoyButtonWidget::flash);
     disconnect(m_button, &JoyButton::released, this, &JoyButtonWidget::unflash);
 
@@ -54,14 +62,28 @@ void JoyButtonWidget::disableFlashes()
 
 void JoyButtonWidget::enableFlashes()
 {
+    if (m_button == nullptr)
+        return;
+
     connect(m_button, &JoyButton::clicked, this, &JoyButtonWidget::flash, Qt::QueuedConnection);
     connect(m_button, &JoyButton::released, this, &JoyButtonWidget::unflash, Qt::QueuedConnection);
 }
 
 QString JoyButtonWidget::generateLabel()
 {
-    QString temp = m_button->getName(false, ifDisplayNames()).replace("&", "&&");
+    if (m_button == nullptr)
+        return QString();
 
+    QString temp;
+    if (m_button->getDisplayMode() == JoyButton::FunctionMode && !m_button->getFunctionLabel().isEmpty())
+    {
+        temp = m_button->getFunctionLabel();
+    } else
+    {
+        temp = m_button->getName(false, ifDisplayNames());
+    }
+
+    temp.replace("&", "&&");
     qDebug() << "Name of joy button is: " << temp;
 
     return temp;
@@ -77,6 +99,6 @@ void JoyButtonWidget::showContextMenu(const QPoint &point)
 
 void JoyButtonWidget::tryFlash()
 {
-    if (m_button->getButtonState())
+    if (m_button != nullptr && m_button->getButtonState())
         flash();
 }

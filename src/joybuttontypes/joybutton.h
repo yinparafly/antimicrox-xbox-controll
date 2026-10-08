@@ -88,6 +88,11 @@ class JoyButton : public QObject
         GradientTurbo,
         PulseTurbo
     };
+    enum DisplayMode
+    {
+        MappingMode = 0,  // Show keyboard/mouse mapping
+        FunctionMode      // Show custom function label
+    };
 
     typedef struct _mouseCursorInfo
     {
@@ -121,6 +126,8 @@ class JoyButton : public QObject
     void setMaxAccelThreshold(double value);
     void setChangeSetSelection(int index, bool updateActiveString = true);
     void activateMiniSlots(JoyButtonSlot *slot, JoyButtonSlot *mix);
+    void setFunctionLabel(QString label);
+    void setDisplayMode(DisplayMode mode);
 
     bool hasPendingEvent(); // JoyButtonEvents class
     bool getToggleState();
@@ -161,6 +168,8 @@ class JoyButton : public QObject
     QString getCustomName();
     QString getActionName();
     QString getButtonName();
+    QString getFunctionLabel() const;
+    DisplayMode getDisplayMode() const;
 
     QList<JoyButtonSlot *> *getAssignedSlots();     // JoyButtonSlots class
     QList<JoyButtonSlot *> const &getActiveSlots(); // JoyButtonSlots class
@@ -262,6 +271,7 @@ class JoyButton : public QObject
     static const JoyMouseMovementMode DEFAULTMOUSEMODE;
     static const TurboMode DEFAULTTURBOMODE;
     static const JoyExtraAccelerationCurve DEFAULTEXTRAACCELCURVE;
+    static const DisplayMode DEFAULTDISPLAYMODE;
 
     bool insertAssignedSlot(JoyButtonSlot *slot, bool updateActiveString = true); // JoyButtonSlots class
     bool insertAssignedSlot(JoyButtonSlot *newSlot, int index, bool updateActiveString = true);
@@ -351,6 +361,8 @@ class JoyButton : public QObject
     void buttonNameChanged();
     void propertyUpdated();
     void activeZoneChanged();
+    void functionLabelChanged();
+    void displayModeChanged();
 
   public slots:
     void setTurboInterval(int interval);
@@ -613,6 +625,8 @@ class JoyButton : public QObject
     QString customName;
     QString actionName;
     QString activeZoneString;
+    QString functionLabel;              // Custom function label
+    DisplayMode displayMode;            // Current display mode
 
     QList<JoyButtonSlot *> assignments;
     QList<JoyButtonSlot *> activeSlots;
